@@ -516,7 +516,7 @@ function App() {
         <div id="heading">
 
             <h1 id="title">TSVIS</h1>
-            <a id="github" href="https://github.com/tinysuperion/mazevis" target="_blank">
+            <a id="github" href="https://github.com/tinysuperion/tsvis" target="_blank">
               <img id="github-logo" src="github-mark.png"></img>
             </a>
         </div>
