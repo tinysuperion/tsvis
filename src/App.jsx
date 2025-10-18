@@ -81,12 +81,9 @@ function App() {
 
       let cost = 0;
 
-      for (let index = 0; index < path.length-2; index++){
-
-        // cost += pathCost(path[index], path[index+1]); // im sure this takes up more memory but its a lot cleaner
+      for (let index = 0; index < path.length-1; index++){
 
         cost += Math.hypot(Math.abs(path[index][0] - path[index+1][0]), Math.abs(path[index][1] - path[index+1][1]));
-
       }
 
       return cost;
@@ -237,17 +234,9 @@ function App() {
           y2 = sorted[index][1] - current[current.length-2][1];
 
           result = (y2 * x1) - (y1 * x2);
-          await delay(delayTime
-);
+          await delay(delayTime);
 
         }
-
-        // path.push(sorted[index]);
-        // current.push(sorted[index]);
-        // path.push([current[current.length-2],sorted[index]]);
-        // continue;
-
-        // }
       }
 
       // tack onto convex hull
@@ -285,6 +274,9 @@ function App() {
 
           const cost = (pathCost(path[index], point) + pathCost(point, path[index+1])) - pathCost(path[index], path[index+1]);          
 
+          // compare distance from the points of the path to the new point then subtracts the length of the path
+          // in the first place to check for less loss
+
           if (cost < bestCost){
 
             [bestCost, bestPointIndex, insertIndex] = [cost, pointIndex, index];
@@ -293,35 +285,13 @@ function App() {
 
         }
 
-        // for (let [pathIndex, path] of paths.entries()){
-          
-        //   // compare distance from the points of the path to the new point then subtracts the length of the path
-        //   // in the first place to check for less loss
-
-        //   const cost = (pathCost(path[0], point) + pathCost(point, path[1])) - pathCost(path[0], path[1]);
-
-        //   if (cost < bestCost){
-
-        //     [bestCost, bestPointIndex, bestPathIndex] = [cost, pointIndex, pathIndex];
-
-        //   }
-          
-        // }
-
       }
 
-      // get rid of the original path and add the 2 new paths
+      // insert between the 2 points and remove the point as an option
 
       const [point] = excluded.splice(bestPointIndex, 1); // in brackets to unpack it out of the array splice returns deleted elements in
 
       path.splice(insertIndex+1, 0, point);
-
-      // const path = paths[bestPathIndex].slice();
-
-      // paths.splice(bestPathIndex, 1);
-
-      // paths.push([path[0], point]);
-      // paths.push([point, path[1]]);
 
       refresh();
       await delay(delayTime);
@@ -351,8 +321,7 @@ function App() {
     let improvement = true;
 
     let bestCost = pathCost(null, null);
-    console.log(bestCost);
-
+    
     while (improvement){
 
       improvement = false;
@@ -364,7 +333,9 @@ function App() {
         
         for (let point2 = point1+1; point2 < path.length-1; point2++){
 
-          const section = path.slice(point1, point2+1); // gets the entire section between these 2 points to attempt to "untwist" it
+          let original = path.slice();
+
+          let section = path.slice(point1, point2+1); // gets the entire section between these 2 points to attempt to "untwist" it
           section.reverse();
 
           path.splice(point1, point2+1 - point1, ...section);
@@ -373,8 +344,12 @@ function App() {
 
           if (cost < bestCost){
 
+            console.log(original, path.slice(), cost, bestCost);
+
             improvement = true;
             bestCost = cost;
+
+            refresh();
           }
 
           else{
@@ -383,8 +358,6 @@ function App() {
             path.splice(point1, point2+1 - point1, ...section);
 
           }
-
-          refresh();
 
         }
 
@@ -435,6 +408,106 @@ function App() {
 
   }
 
+  let bestCost = Infinity;
+  let bestPath = [];
+
+  async function branch(cost, currentPath, givenPoints){
+
+    // console.log("\n new call", givenPoints.slice());
+
+    // its better to include cost and bestpath through return statements and the such
+    // im not sure if ill ever do that change though, certainly not now
+
+    function getLeftMost(point1, origin, point2){
+
+      // this uses the cross product, its weird its called that since i think of the cross product as
+      // getting a vector that is 90 degrees from 2 vectors but whatever, it basically gets the leftmost
+      // point relative to some origin compared to some other point
+
+      let [x1, y1, x2, y2] = [point1[0] - origin[0], point1[1] - origin[1], point2[0] - origin[0], point2[1] - origin[1]];
+      // subtract origin from the points coordinates to make it relative to the origin
+
+      return y1 * x2 > y2 * x1;
+      // greater = leftmost, its basically comparing the relative slopes
+    }
+
+    if (givenPoints.length == 0){
+
+      cost += pathCost(currentPath[currentPath.length-1], currentPath[0]);
+      currentPath.push(currentPath[0]);
+
+      if (cost < bestCost){
+
+        // bestCost = newCost;
+        bestCost = cost;
+        bestPath = currentPath;
+
+        path = bestPath;
+
+        refresh();
+      }
+
+      // console.log("finish with ", currentPath.slice());
+
+      return;
+
+    }
+
+    let pointsLeft = givenPoints.slice();
+
+    // console.log(givenPoints.slice());
+
+    for (let point = 0; point < givenPoints.length; point++){
+
+      let newCost = cost;
+
+      const lastPoint = currentPath.length-1;
+      // if (currentPath.length != 0){
+
+        newCost += pathCost(currentPath[lastPoint], givenPoints[point]);
+      // }
+
+      if (newCost >= bestCost){
+        
+        continue;
+      }
+
+      // check intersections here
+
+      if (currentPath.length >= 3 && getLeftMost(pointsLeft[point], currentPath[lastPoint-1], currentPath[lastPoint-2]) != getLeftMost(currentPath[lastPoint], currentPath[lastPoint-1], currentPath[lastPoint-2]) && 
+          getLeftMost(currentPath[lastPoint-1], pointsLeft[point], currentPath[lastPoint] != getLeftMost(currentPath[lastPoint-2], pointsLeft[point], currentPath[lastPoint]))){
+
+          // its hard to see without a graphic, this basically checks against a line from one point to another, if the first parameter
+          // is to the left relative to the 2nd parameter the origin then it returns true, otherwise false. if 2 points
+          // from the same line segment are on the other side of that line and if the same is true from the other line segment as the
+          // origin then there has to be a crossing or intersection
+          
+          continue;
+
+      }
+
+      pointsLeft.splice(point, 1);
+      currentPath.push(givenPoints[point]);
+
+      branch(newCost, currentPath.slice(), pointsLeft.slice());
+
+      pointsLeft.splice(point, 0, givenPoints[point]);      
+      currentPath.pop();
+
+    }
+
+  }
+
+  async function anneal(){
+
+    // steps:
+    // randomize solution
+    // improve based on temperature and cost
+
+    
+
+  }
+
   return (
     <>
 
@@ -465,6 +538,7 @@ function App() {
                 <option className="option" value="convex">convex hull</option>
                 <option className="option" value="2opt">2-opt</option>
                 <option className="option" value="nearest">nearest neighbor</option>
+                <option className="option" value="branch">branch and bound</option>
 
               </select>
 
@@ -543,6 +617,10 @@ function App() {
                 if (selection == "convex"){
 
                   // await convexHull;
+
+                  path = [];
+                  refresh();
+
                   convexHull();
 
                 }
@@ -554,7 +632,22 @@ function App() {
 
                 else if (selection == "nearest"){
 
+                  path = [];
+                  refresh();
+
                   nearestNeighbor();
+                }
+
+                else if (selection == "branch"){
+
+                  bestCost = Infinity;
+                  bestPath = [];
+
+                  path = [];
+                  refresh();
+
+                  branch(0, [points[0]], points.slice(1));
+
                 }
 
                 ongoing = false;
@@ -573,6 +666,9 @@ function App() {
               </button>
 
               <button className="control" onClick={async ()=>{
+
+                path = [];
+                refresh();
 
               }}>
                 reset
