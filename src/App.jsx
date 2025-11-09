@@ -762,7 +762,7 @@ function App() {
 
                             <li>to do this the bottom-left most point is found as this has to be on the convex hull because there are no points past it</li>
                             <li>then, using that bottom-left most point as an origin the slopes of all of the remaining points are calculated. this is because by going in a clock-wise or counter-clockwise fashion it avoids crossings</li>
-                            <li>finally, the sorted points are iterated through and using the cross product,  something similar to a relative slope is produced where the exact equation used is (y2 * x1) - (y1 * x2) and where all the coordinates (of 2 points, (x1,y1) and (x2,y2)) are offset by the coordinates of the origin or the bottom-left most point. this dictates the left-most point, which youll want for a convex hull as to include all points with the smallest amount of points </li>
+                            <li>finally, the sorted points are iterated through and using the cross product,  something similar to a relative slope is produced where the exact equation used is (y2 * x1) - (y1 * x2) and where all the coordinates (of 2 points, (x1,y1) and (x2,y2)) are offset by the coordinates of the origin or the bottom-left most point. the greater value between (y2 * x1) and (y1 * x2) dicates the left-most point, which youll want for a convex hull as to include all points with the smallest amount of points </li>
 
                           </ul>
                           
