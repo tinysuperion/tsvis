@@ -4,13 +4,19 @@
   font-weight: 400;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  /* color: rgba(255, 255, 255, 0.87); */
+  /* background-color: rgb(30, 30, 33); */
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  color: #213547;
+  background-color: #ffffff;
+
+
+  overflow: hidden;
 }
 
 
@@ -57,7 +63,7 @@
 
 }
 
-.panel{
+#panel{
 
   position: absolute;
 
@@ -142,48 +148,6 @@
 
 }
 
-#info{
-
-  position: absolute;
-  left: 80%;
-  top: 0px;
-  bottom: 0px;
-  width: 18%;
-
-  padding: 10px;
-  padding-top: 40px;
-
-  overflow: auto;
-}
-
-#implementation{
-
-  position: absolute;
-  bottom: 16px;
-
-  width: 85%;
-  padding: 4px;
-
-  font-size: 12px;
-
-  border-style: solid;
-  border-radius: 2px;
-
-  color: white;
-  background-color: #213547;
-
-}
-
-#implementation:hover{
-
-  background-color: #242424;
-}
-
-#implementation:active{
-
-
-  background-color: #213547;
-}
 
 #codeContainer{
 
@@ -210,29 +174,36 @@
   pointer-events: none;
 }
 
-#close{
+#exitDescription{
 
-  box-sizing: content-box;
-  position: fixed;
-  top: 4.88%;
-  right: 17.82%;
+  position: absolute;
+  top: 2px;
+  right: 0px;
 
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 1/1;
 
-  width: 2%;
   padding: 0px;
+  height: auto;
+  width: 3%;
 
-  transform: translate(-50%, -50%);
+}
 
-  color: white;
+#algorithmDescription{
 
-  border-style: solid;
-  border-color: white;
-  background-color:black;
-  border-radius: 2px;
-  border-width: 2px;
+  position: absolute;
 
-  pointer-events: all;
+  background-color: rgb(20, 20, 23);
+
+  left: 22%;
+  right: 5%;
+  top: 6%;
+  bottom: 6%;
+
+  z-index: 2;
+
+  padding: 10px;
+
+  overflow: auto;
 
 }
 
@@ -250,6 +221,67 @@
   width: 0px;
   height : 20px;
   background-color: rgba(242, 241, 255, 0);
+}
+
+#distanceContainer{
+
+  display: flex;
+
+  /* position: relative; */
+
+  width: 80%;
+  height: 30px;
+  padding: 16px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  border: 1px solid black;
+  border-radius: 4px;
+
+  align-items: center;
+
+}
+
+
+#historyButton{ 
+
+  /* position: absolute; */
+  right : 0px;
+
+  box-sizing: content-box;
+
+  aspect-ratio: 1/1;
+
+  width: auto;
+  height: 100%;
+
+  padding: 0px;
+}
+
+#distanceHistory{
+
+  display: block;
+
+  position: absolute;
+  z-index: 2;
+  visibility: visible;
+
+  left: 20%;
+  top: 50%;
+
+  border-left-width: 2px;
+  border-left-style: solid;
+  border-color: grey;
+
+  padding: 2px;
+
+  transform: translateX(16px);
+
+  /* transform: translate(-50%, -50%); */
+
+  margin: 0 auto;
+
+  background-color: white;
+
 }
 
 #delaySliderContainer{
@@ -271,7 +303,7 @@ input{
 
 #pointSettings {
 
-  margin-top: 20px;
+  margin-top: 10px;
 
   width: 80%;
 }
@@ -286,7 +318,7 @@ input{
 }
 
 
-#graphic_{
+#graphic{
 
   margin-left: 16px;
   margin-right: 16px;
@@ -299,16 +331,28 @@ input{
   /* right: 20%; doesnt work for resizing canvas*/
   top: 0px;
   /* bottom: 0px; */
-
+/* 
   width: 60%;
-  height: 100%;
+  height: 100%; */
 
   background-color: rgb(30, 30, 33);
 }
 
+/* #header{
+
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  background-color: rgb(36, 36, 36);
+  
+
+} */
+
 p {
 
   margin: 0px;
+  white-space: normal;
 
 }
 
@@ -336,6 +380,8 @@ h1 {
 
 button {
 
+  background-color: #f9f9f9;
+
   box-sizing: content-box;
 
   text-align: center;
@@ -345,13 +391,13 @@ button {
   /* font-size: 1em; */
   /* font-weight: 500; */
   font-family: inherit;
-  background-color: #ffffff00;
   cursor: pointer;
   transition: border-color 0.25s;
 }
 button:hover {
   background-color: rgba(242, 241, 255, 0.4);
   border-color: #646cff;
+  border-width: 2px;
 }
 button:focus,
 button:focus-visible {
@@ -365,7 +411,24 @@ hr{
 
 }
 
-@media (prefers-color-scheme: light) {
+code{
+
+  color: white;
+
+}
+
+li{
+
+    white-space: normal;  /* not the default for some reason! allows text to wrap */
+    /* word-wrap: break-word; */
+
+}
+
+a:hover {
+  color: #747bff;
+}
+
+/* @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
     background-color: #ffffff;
@@ -376,4 +439,5 @@ hr{
   button {
     background-color: #f9f9f9;
   }
-}
+} */
+
