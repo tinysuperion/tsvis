@@ -1,5 +1,13 @@
 # tsvis
 
-a travelling salesman problem visualization heavily inspired by this repository https://github.com/jhackshaw/tspvis
+a travelling salesman problem algorithm visualization to help clarify and implement them yourself 
 
-highly rudimentary and unfinished (missing information on the algorithms, missing functionality), mainly a proof of concept
+## algorithms
+
+- convex-hull
+- 2-opt
+- nearest neighbor
+- branch and bound (cost, crossings)
+- simulated annealing
+
+heavily inspired by this repository https://github.com/jhackshaw/tspvis
