@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect} from 'react'
+import { useState, useEffect} from 'react'
 
 let points = [];
 let iterations = [];
@@ -11,6 +11,7 @@ let pointSize = 8;
 let ongoing = false;
 let pause = false;
 let skip = false;
+let reset = false;
 let draw = false;
 
 let path = [];
@@ -201,8 +202,6 @@ function App() {
       let left = mergeSort(array.slice(0, middle));
       let right = mergeSort(array.slice(middle));
 
-      console.log(left, right);
-
       let newArray = [];
 
       let leftIndex = 0;
@@ -258,8 +257,6 @@ function App() {
 
     // sort the points by their slope according to the bottom-left; prevents points from stretching across the convex hull
 
-    console.log(points.length);
-
     for (let index = 0; index < points.length; index++){
 
       if (index == origin){
@@ -285,7 +282,7 @@ function App() {
 
     sorted = mergeSort(sorted);
 
-    console.log(sorted);
+    // console.log(sorted);
 
     // now loop through and use cross product to create convex hull
 
@@ -297,6 +294,11 @@ function App() {
     for (let index = 0; index < sorted.length; index++){
 
       // console.log(current.slice());
+
+      if (reset){
+
+        return;
+      }
 
       if (current.length > 1){
 
@@ -357,6 +359,11 @@ function App() {
     
     while (excluded.length > 0){
 
+      if (reset){
+
+        return;
+      }
+
       let [bestCost, bestPointIndex, insertIndex] = [Infinity, null, null];
 
       for (let [pointIndex, point] of excluded.entries()){
@@ -411,6 +418,11 @@ function App() {
     
     while (improvement){
 
+      if (reset){
+        
+        return;
+      }
+
       improvement = false;
 
       for (let point1 = 1; point1 < path.length-1; point1++){
@@ -431,7 +443,7 @@ function App() {
 
           if (cost < bestCost){
 
-            console.log(original, path.slice(), cost, bestCost);
+            // console.log(original, path.slice(), cost, bestCost);
 
             improvement = true;
             bestCost = cost;
@@ -466,6 +478,11 @@ function App() {
 
     while (pointsLeft.length > 0){
 
+      if (reset){
+
+        return;
+      }
+
       let distance = 99999;
       let closest;
 
@@ -498,15 +515,12 @@ function App() {
 
   }
 
-  let bestCost = Infinity;
-  let bestPath = [];
+  async function branch(cost, currentPath, givenPoints, bestCost=Infinity){
 
-  async function branch(cost, currentPath, givenPoints){
+    if (reset){
 
-    // console.log("\n new call", givenPoints.slice());
-
-    // its better to include cost and bestpath through return statements and the such
-    // im not sure if ill ever do that change though, certainly not now
+      return [bestCost, []];
+    }
 
     function getLeftMost(point1, origin, point2){
 
@@ -521,31 +535,36 @@ function App() {
       // greater = leftmost, its basically comparing the relative slopes
     }
 
+    let bestPath;
+
     if (givenPoints.length == 0){
+
+      await delay(delayTime);
 
       cost += pathCost(currentPath[currentPath.length-1], currentPath[0]);
       currentPath.push(currentPath[0]);
 
       if (cost < bestCost){
 
-        // bestCost = newCost;
         bestCost = cost;
         bestPath = currentPath;
-
-        path = bestPath;
-
-        refresh();
       }
 
-      // console.log("finish with ", currentPath.slice());
-
-      return;
+      path = currentPath;
+      refresh();
 
     }
 
     let pointsLeft = givenPoints.slice();
 
+    await delay(delayTime);
+
     for (let point = 0; point < givenPoints.length; point++){
+
+      if (reset){
+
+        return [bestCost, []];
+      }
 
       let newCost = cost;
 
@@ -576,12 +595,25 @@ function App() {
       pointsLeft.splice(point, 1);
       currentPath.push(givenPoints[point]);
 
-      branch(newCost, currentPath.slice(), pointsLeft.slice());
+      path = currentPath;
+
+      refresh();
+      await delay(delayTime);
+
+      const result = await branch(newCost, currentPath.slice(), pointsLeft.slice(), bestCost);
+
+      if (result[0] < bestCost){
+
+        bestCost = result[0];
+        bestPath = result[1];
+      }
 
       pointsLeft.splice(point, 0, givenPoints[point]);      
       currentPath.pop();
 
     }
+
+    return [bestCost, bestPath];
 
   }
 
@@ -620,6 +652,11 @@ function App() {
     }
 
     for (let temperature = 100; temperature > 1e-6; temperature *= coolRate){
+
+      if (reset){
+        
+        return;
+      }
 
       // swap 2 random points, this will be the neighbor, then just check to select it
       // as the current route based on temperature
@@ -737,8 +774,6 @@ function App() {
                   const file = await fetch("convex.jsx");
                   const fileContent = await file.text();
 
-                  console.log(fileContent);
-
                   // const formattedContent = changeIndent(fileContent, 2);
                   
                   // console.log(formattedContent);
@@ -797,8 +832,6 @@ function App() {
                   const file = await fetch("2-opt.jsx");
                   const fileContent = await file.text();
 
-                  console.log(fileContent);
-
                   setDescription(
 
                   <div>
@@ -842,8 +875,6 @@ function App() {
                   const file = await fetch("nearest.jsx");
                   const fileContent = await file.text();
 
-                  console.log(fileContent);
-
                   setDescription(
 
                   <div>
@@ -876,8 +907,6 @@ function App() {
 
                   const file = await fetch("branch.jsx");
                   const fileContent = await file.text();
-
-                  console.log(fileContent);
 
                   setDescription(
 
@@ -940,8 +969,6 @@ function App() {
 
                   const file = await fetch("anneal.jsx");
                   const fileContent = await file.text();
-
-                  console.log(fileContent);
 
                   setDescription(
 
@@ -1075,13 +1102,15 @@ function App() {
 
                 else if (selection == "branch"){
 
-                  bestCost = Infinity;
-                  bestPath = [];
+                  // bestCost = Infinity;
+                  // bestPath = [];
 
                   path = [];
                   refresh();
 
-                  await branch(0, [points[0]], points.slice(1));
+                  const result = await branch(0, [points[0]], points.slice(1));
+                  path = result[1];
+                  refresh();
 
                 }
 
@@ -1094,6 +1123,8 @@ function App() {
                 ongoing = false;
                 pause = false;
                 skip = false;
+                reset = false;
+
                 run.textContent = "start";
 
                 // get rid of duplicate iterations
@@ -1123,12 +1154,19 @@ function App() {
 
               <button className="control" onClick={()=>{
 
-                skip = true;
+                if (ongoing){
+
+                  skip = true;
+                }
               }}>
                 skip
               </button>
 
               <button className="control" onClick={async ()=>{
+
+                reset = true;
+                skip = true;
+                await delay(200);
 
                 path = [];
                 refresh();
@@ -1314,8 +1352,6 @@ function App() {
           <ul>
 
             {/* <li>im a part of history!</li> */}
-
-            {console.log(distanceHistory)}
 
             {distanceHistory.map((entry, index)=>{
 
